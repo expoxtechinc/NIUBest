@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './lib/authContext';
 import { Programme, Certificate, Transcript } from './types';
-import { seedInitialAcademicDataIfEmpty, fetchProgrammes } from './lib/academicService';
+import { fetchProgrammes } from './lib/academicService';
 import { enrollStudent, fetchStudentEnrollments } from './lib/progressService';
 import { DisclaimerBanner } from './components/common/DisclaimerBanner';
 import { Navbar } from './components/common/Navbar';
@@ -30,17 +30,7 @@ function MainApp() {
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
   const [selectedTranscript, setSelectedTranscript] = useState<Transcript | null>(null);
 
-  // Initial database check & seed
   useEffect(() => {
-    async function initPlatform() {
-      try {
-        await seedInitialAcademicDataIfEmpty();
-      } catch (err) {
-        console.error('Initial database seed error:', err);
-      }
-    }
-    initPlatform();
-
     // Check if query string has ?code=... for direct verification link
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('code')) {

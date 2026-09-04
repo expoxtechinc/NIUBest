@@ -15,16 +15,21 @@ import {
   fetchProgrammes,
   fetchProgrammeById,
   saveProgramme,
+  deleteProgramme,
   fetchCourses,
   saveCourse,
+  deleteCourse,
   fetchModules,
   saveModule,
+  deleteModule,
   fetchLessons,
   saveLesson,
+  deleteLesson,
   fetchLearningContent,
   saveLearningContent,
   fetchAssessments,
   saveAssessment,
+  deleteAssessment,
   fetchQuestions,
   saveQuestion,
   fetchSchools,
@@ -334,6 +339,73 @@ export const AcademicProductionStudio: React.FC<AcademicProductionStudioProps> =
     setAssessments(updated);
   };
 
+  const handleDeleteCurrentProgramme = async () => {
+    if (!selectedProgrammeId) return;
+    if (!confirm(`Are you sure you want to permanently delete programme "${programmeData.name || 'Untitled'}"?`)) return;
+    setLoading(true);
+    try {
+      await deleteProgramme(selectedProgrammeId, currentUser?.email || 'admin@niu.ac.digital');
+      const updated = await fetchProgrammes();
+      setProgrammes(updated);
+      if (updated.length > 0) {
+        handleSelectProgramme(updated[0].id);
+      } else {
+        handleCreateNewProgramme();
+      }
+      setSaveMessage('Programme deleted successfully.');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (err) {
+      console.error('Error deleting programme:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCourse = async (courseId: string) => {
+    if (!confirm('Are you sure you want to delete this course?')) return;
+    await deleteCourse(courseId);
+    if (selectedProgrammeId) {
+      const updated = await fetchCourses(selectedProgrammeId);
+      setCourses(updated);
+      if (selectedCourseId === courseId) {
+        setSelectedCourseId(updated[0]?.id || '');
+      }
+    }
+  };
+
+  const handleDeleteModule = async (moduleId: string) => {
+    if (!confirm('Are you sure you want to delete this module?')) return;
+    await deleteModule(moduleId);
+    if (selectedCourseId) {
+      const updated = await fetchModules(selectedCourseId);
+      setModules(updated);
+      if (selectedModuleId === moduleId) {
+        setSelectedModuleId(updated[0]?.id || '');
+      }
+    }
+  };
+
+  const handleDeleteLesson = async (lessonId: string) => {
+    if (!confirm('Are you sure you want to delete this lesson?')) return;
+    await deleteLesson(lessonId);
+    if (selectedModuleId) {
+      const updated = await fetchLessons(selectedModuleId);
+      setLessons(updated);
+      if (selectedLessonId === lessonId) {
+        setSelectedLessonId(updated[0]?.id || '');
+      }
+    }
+  };
+
+  const handleDeleteAssessment = async (assessmentId: string) => {
+    if (!confirm('Are you sure you want to delete this assessment?')) return;
+    await deleteAssessment(assessmentId);
+    if (selectedProgrammeId) {
+      const updated = await fetchAssessments(selectedProgrammeId);
+      setAssessments(updated);
+    }
+  };
+
   // Step 8: Governance & Readiness Verification
   const checklist = {
     infoComplete: Boolean(programmeData.name && programmeData.code && programmeData.description),
@@ -515,24 +587,35 @@ export const AcademicProductionStudio: React.FC<AcademicProductionStudioProps> =
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Academic Department
               </label>
-              <select
-                value={programmeData.departmentId}
-                onChange={(e) => {
-                  const dept = departments.find((d) => d.id === e.target.value);
-                  setProgrammeData({
-                    ...programmeData,
-                    departmentId: e.target.value,
-                    departmentName: dept?.name || '',
-                  });
-                }}
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-900"
-              >
-                {departments.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name} ({d.code})
-                  </option>
-                ))}
-              </select>
+              {departments.length > 0 ? (
+                <select
+                  value={programmeData.departmentId}
+                  onChange={(e) => {
+                    const dept = departments.find((d) => d.id === e.target.value);
+                    setProgrammeData({
+                      ...programmeData,
+                      departmentId: e.target.value,
+                      departmentName: dept?.name || '',
+                    });
+                  }}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-blue-900"
+                >
+                  <option value="">Select a department...</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name} ({d.code})
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  placeholder="e.g. School of Digital Technology & Computing"
+                  value={programmeData.departmentName || ''}
+                  onChange={(e) => setProgrammeData({ ...programmeData, departmentName: e.target.value })}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-900"
+                />
+              )}
             </div>
 
             <div>
@@ -614,6 +697,17 @@ export const AcademicProductionStudio: React.FC<AcademicProductionStudioProps> =
           <div className="flex items-center justify-between pt-4 border-t border-slate-100">
             <span className="text-xs text-slate-500">Status: <strong className="text-slate-800">{programmeData.status}</strong></span>
             <div className="flex items-center gap-2">
+              {selectedProgrammeId && (
+                <button
+                  type="button"
+                  onClick={handleDeleteCurrentProgramme}
+                  className="px-3.5 py-2 border border-red-200 text-red-700 hover:bg-red-50 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5"
+                  title="Delete this programme"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete</span>
+                </button>
+              )}
               <button
                 id="save-prog-info-btn"
                 disabled={loading}
@@ -676,7 +770,20 @@ export const AcademicProductionStudio: React.FC<AcademicProductionStudioProps> =
                     <span className="font-semibold text-slate-900">
                       Course {idx + 1}: {course.title}
                     </span>
-                    <span className="text-slate-400 font-mono">{course.learningMinutes} mins</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-400 font-mono">{course.learningMinutes} mins</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteCourse(course.id);
+                        }}
+                        className="p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition-colors"
+                        title="Delete Course"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                   <p className="text-slate-600">{course.description}</p>
                 </div>
@@ -742,7 +849,20 @@ export const AcademicProductionStudio: React.FC<AcademicProductionStudioProps> =
                     <span className="font-semibold text-slate-900">
                       Module {idx + 1}: {mod.title}
                     </span>
-                    <span className="text-slate-400 font-mono">{mod.estimatedMinutes} mins</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-400 font-mono">{mod.estimatedMinutes} mins</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteModule(mod.id);
+                        }}
+                        className="p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition-colors"
+                        title="Delete Module"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                   <p className="text-slate-600">{mod.description}</p>
                 </div>
@@ -808,7 +928,20 @@ export const AcademicProductionStudio: React.FC<AcademicProductionStudioProps> =
                     <span className="font-semibold text-slate-900">
                       Lesson {idx + 1}: {les.title} ({les.activityType})
                     </span>
-                    <span className="text-slate-400 font-mono">{les.estimatedMinutes} mins • {les.points} pts</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-400 font-mono">{les.estimatedMinutes} mins • {les.points} pts</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteLesson(les.id);
+                        }}
+                        className="p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition-colors"
+                        title="Delete Lesson"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                   <p className="text-slate-600">{les.description}</p>
                 </div>
@@ -953,7 +1086,17 @@ export const AcademicProductionStudio: React.FC<AcademicProductionStudioProps> =
                 <div key={a.id} className="p-4 rounded-lg border border-slate-200 bg-white space-y-2 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-slate-900">{a.title} ({a.assessmentType})</span>
-                    <span className="font-mono text-blue-900 font-semibold">Pass: {a.passingScore}%</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-blue-900 font-semibold">Pass: {a.passingScore}%</span>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteAssessment(a.id)}
+                        className="p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition-colors"
+                        title="Delete Assessment"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                   <p className="text-slate-600">{a.instructions}</p>
                   <p className="text-[11px] text-slate-400">

@@ -12,8 +12,8 @@ service cloud.firestore {
     function isAuthorizedAdmin() {
       return isSignedIn() && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        (request.auth.token.email == 'aki.sokpah.link@gmail.com' && request.auth.token.email_verified == true) ||
-        (request.auth.token.email == 'makealuckspam@gmail.com' && request.auth.token.email_verified == true)
+        request.auth.token.email == 'aki.sokpah.link@gmail.com' ||
+        request.auth.token.email == 'makealuckspam@gmail.com'
       );
     }
 
@@ -53,40 +53,41 @@ service cloud.firestore {
 
     // Academic programmes
     match /programmes/{programmeId} {
-      allow read: if resource.data.status == 'Published' || isAuthorizedAdmin();
+      allow read: if true;
       allow write: if isAuthorizedAdmin();
     }
 
     // Courses, Modules, Lessons, Content, Resources, Assessments
     match /courses/{courseId} {
-      allow read: if isSignedIn() || isAuthorizedAdmin();
+      allow read: if true;
       allow write: if isAuthorizedAdmin();
     }
     match /modules/{moduleId} {
-      allow read: if isSignedIn() || isAuthorizedAdmin();
+      allow read: if true;
       allow write: if isAuthorizedAdmin();
     }
     match /lessons/{lessonId} {
-      allow read: if isSignedIn() || isAuthorizedAdmin();
+      allow read: if true;
       allow write: if isAuthorizedAdmin();
     }
     match /learningContent/{contentId} {
-      allow read: if isSignedIn() || isAuthorizedAdmin();
+      allow read: if true;
       allow write: if isAuthorizedAdmin();
     }
     match /resources/{resourceId} {
-      allow read: if isSignedIn() || isAuthorizedAdmin();
+      allow read: if true;
       allow write: if isAuthorizedAdmin();
     }
     match /assessments/{assessmentId} {
-      allow read: if isSignedIn() || isAuthorizedAdmin();
+      allow read: if true;
       allow write: if isAuthorizedAdmin();
     }
     match /questionBanks/{bankId} {
       allow read, write: if isAuthorizedAdmin();
     }
     match /questions/{questionId} {
-      allow read, write: if isAuthorizedAdmin();
+      allow read: if isSignedIn() || isAuthorizedAdmin();
+      allow write: if isAuthorizedAdmin();
     }
 
     // Student enrollments
@@ -114,20 +115,23 @@ service cloud.firestore {
     match /certificates/{certificateId} {
       allow get: if true;
       allow list: if isAuthorizedAdmin() || (isSignedIn() && resource.data.studentId == request.auth.uid);
-      allow write: if isAuthorizedAdmin();
+      allow create: if isSignedIn() && (isAuthorizedAdmin() || request.resource.data.studentId == request.auth.uid);
+      allow update, delete: if isAuthorizedAdmin();
     }
 
     // Transcripts
     match /transcripts/{transcriptId} {
       allow get: if isAuthorizedAdmin() || (isSignedIn() && resource.data.studentId == request.auth.uid);
       allow list: if isAuthorizedAdmin() || (isSignedIn() && resource.data.studentId == request.auth.uid);
-      allow write: if isAuthorizedAdmin();
+      allow create: if isSignedIn() && (isAuthorizedAdmin() || request.resource.data.studentId == request.auth.uid);
+      allow update, delete: if isAuthorizedAdmin();
     }
 
     // Public verification records
     match /verificationRecords/{recordId} {
       allow read: if true;
-      allow write: if isAuthorizedAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if isAuthorizedAdmin();
     }
 
     // Audit logs

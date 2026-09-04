@@ -498,12 +498,22 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({
         </div>
 
         {loading ? (
-          <div className="py-20 text-center text-sm text-slate-500">Loading catalog from Firestore...</div>
+          <div className="py-20 text-center text-sm text-slate-500">Loading verified catalog from Firestore...</div>
         ) : filteredProgrammes.length === 0 ? (
-          <div className="py-20 text-center bg-white rounded-xl border border-slate-200 p-8">
-            <GraduationCap className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-            <h3 className="text-base font-semibold text-slate-800">No matching programmes found</h3>
-            <p className="text-xs text-slate-500 mt-1">Try refining your search terms or filters.</p>
+          <div className="py-16 text-center bg-white rounded-xl border border-slate-200 p-8 max-w-lg mx-auto shadow-xs space-y-3">
+            <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-900 mx-auto flex items-center justify-center">
+              <GraduationCap className="w-6 h-6 text-blue-900" />
+            </div>
+            <div>
+              <h3 className="text-base font-serif font-bold text-slate-900">
+                {programmes.length === 0 ? 'Curriculum In Preparation' : 'No matching programmes found'}
+              </h3>
+              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                {programmes.length === 0
+                  ? 'The university administration is currently configuring accredited certificate offerings. Check back shortly, or sign in to the administrative console to author new programmes.'
+                  : 'Try adjusting your search terms or filters.'}
+              </p>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -673,57 +683,77 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {programmes.slice(0, 3).map((prog) => (
-            <div
-              key={prog.id}
-              className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col"
-            >
-              <div className="h-44 bg-slate-100 relative overflow-hidden">
-                <img
-                  src={prog.imageUrl}
-                  alt={prog.name}
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute top-3 left-3 bg-[#0a192f]/90 text-white text-[11px] font-mono px-2 py-0.5 rounded backdrop-blur-xs">
-                  {prog.code}
+        {programmes.length === 0 ? (
+          <div className="bg-white rounded-xl border border-slate-200 p-10 text-center space-y-4 shadow-xs max-w-xl mx-auto">
+            <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-900 mx-auto flex items-center justify-center">
+              <GraduationCap className="w-7 h-7 text-blue-900" />
+            </div>
+            <div>
+              <span className="text-[11px] font-mono tracking-widest uppercase text-blue-800 font-semibold block mb-1">
+                Official Academic Registry Notice
+              </span>
+              <h3 className="text-lg font-serif font-bold text-slate-900">
+                New Curriculum In Authoring & Publication
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+                Nova International University is currently configuring official digital certificate offerings.
+                As soon as the administration publishes official certificate curricula, they will be listed here for immediate student enrollment.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {programmes.slice(0, 3).map((prog) => (
+              <div
+                key={prog.id}
+                className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col"
+              >
+                <div className="h-44 bg-slate-100 relative overflow-hidden">
+                  <img
+                    src={prog.imageUrl}
+                    alt={prog.name}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute top-3 left-3 bg-[#0a192f]/90 text-white text-[11px] font-mono px-2 py-0.5 rounded backdrop-blur-xs">
+                    {prog.code}
+                  </div>
+                  <div className="absolute top-3 right-3 bg-white/95 text-slate-800 text-[11px] font-medium px-2 py-0.5 rounded shadow-xs">
+                    {prog.difficulty}
+                  </div>
                 </div>
-                <div className="absolute top-3 right-3 bg-white/95 text-slate-800 text-[11px] font-medium px-2 py-0.5 rounded shadow-xs">
-                  {prog.difficulty}
-                </div>
-              </div>
 
-              <div className="p-5 flex-1 flex flex-col justify-between">
-                <div>
-                  <span className="text-[11px] uppercase tracking-wider text-blue-800 font-semibold block mb-1">
-                    {prog.departmentName || 'Academic Department'}
-                  </span>
-                  <h3 className="text-base font-serif font-bold text-slate-900 leading-snug">
-                    {prog.name}
-                  </h3>
-                  <p className="text-xs text-slate-600 mt-2 line-clamp-3 leading-relaxed">
-                    {prog.description}
-                  </p>
-                </div>
-
-                <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{prog.learningHours} Hours</span>
+                <div className="p-5 flex-1 flex flex-col justify-between">
+                  <div>
+                    <span className="text-[11px] uppercase tracking-wider text-blue-800 font-semibold block mb-1">
+                      {prog.departmentName || 'Academic Department'}
+                    </span>
+                    <h3 className="text-base font-serif font-bold text-slate-900 leading-snug">
+                      {prog.name}
+                    </h3>
+                    <p className="text-xs text-slate-600 mt-2 line-clamp-3 leading-relaxed">
+                      {prog.description}
+                    </p>
                   </div>
 
-                  <button
-                    onClick={() => onSelectProgramme(prog)}
-                    className="text-xs font-semibold text-blue-900 hover:text-blue-700 flex items-center gap-1"
-                  >
-                    View Details <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{prog.learningHours} Hours</span>
+                    </div>
+
+                    <button
+                      onClick={() => onSelectProgramme(prog)}
+                      className="text-xs font-semibold text-blue-900 hover:text-blue-700 flex items-center gap-1"
+                    >
+                      View Details <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* 4. HOW LEARNING WORKS (Four Steps) */}
