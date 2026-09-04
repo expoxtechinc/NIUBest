@@ -1,0 +1,421 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role-based identity for student or institutional admin.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "fullName": { "type": "string", "maxLength": 150, "description": "Student or Admin full name" },
+        "email": { "type": "string", "maxLength": 250, "description": "Registered academic email" },
+        "photoURL": { "type": "string", "description": "Profile photo URL" },
+        "role": { "type": "string", "enum": ["admin", "student"], "description": "Institutional RBAC role" },
+        "accountStatus": { "type": "string", "enum": ["active", "suspended"], "description": "Account status" },
+        "createdAt": { "type": "string", "description": "ISO timestamp or ServerTimestamp" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp or ServerTimestamp" }
+      },
+      "required": ["uid", "email", "role", "accountStatus"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Authorized institutional administrator registry entry.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Admin UID" },
+        "email": { "type": "string", "maxLength": 250, "description": "Admin email" },
+        "createdAt": { "type": "string", "description": "Timestamp" }
+      },
+      "required": ["uid", "email"]
+    },
+    "School": {
+      "title": "School",
+      "description": "Academic school within Nova International University.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Document ID" },
+        "name": { "type": "string", "maxLength": 150, "description": "School title" },
+        "code": { "type": "string", "maxLength": 20, "description": "School code e.g. SCI, BUS" },
+        "description": { "type": "string", "description": "School overview" },
+        "dean": { "type": "string", "description": "Dean name" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "code"]
+    },
+    "Department": {
+      "title": "Department",
+      "description": "Academic department within a School.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "schoolId": { "type": "string" },
+        "name": { "type": "string", "maxLength": 150 },
+        "code": { "type": "string", "maxLength": 20 },
+        "description": { "type": "string" },
+        "headOfDepartment": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["schoolId", "name", "code"]
+    },
+    "Programme": {
+      "title": "Programme",
+      "description": "Structured certificate educational programme.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 200 },
+        "code": { "type": "string", "maxLength": 30 },
+        "departmentId": { "type": "string" },
+        "departmentName": { "type": "string" },
+        "description": { "type": "string" },
+        "learningHours": { "type": "number" },
+        "difficulty": { "type": "string", "enum": ["Beginner", "Intermediate", "Advanced"] },
+        "objectives": { "type": "string" },
+        "learningOutcomes": { "type": "string" },
+        "entryRequirements": { "type": "string" },
+        "completionRequirements": { "type": "string" },
+        "minimumScore": { "type": "number" },
+        "imageUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["Draft", "Review", "Approved", "Published"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["name", "code", "status", "minimumScore"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Course belonging to a certificate programme.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "programmeId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string" },
+        "outcomes": { "type": "string" },
+        "learningMinutes": { "type": "number" },
+        "difficulty": { "type": "string" },
+        "category": { "type": "string" },
+        "entryRequirements": { "type": "string" },
+        "courseOrder": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["programmeId", "title", "courseOrder"]
+    },
+    "Module": {
+      "title": "Module",
+      "description": "Academic unit within a Course.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "programmeId": { "type": "string" },
+        "courseId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string" },
+        "objectives": { "type": "string" },
+        "estimatedMinutes": { "type": "number" },
+        "moduleOrder": { "type": "number" },
+        "learnerSupportGuidance": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["programmeId", "courseId", "title", "moduleOrder"]
+    },
+    "Lesson": {
+      "title": "Lesson",
+      "description": "Individual learning activity lesson.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "programmeId": { "type": "string" },
+        "courseId": { "type": "string" },
+        "moduleId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string" },
+        "objectives": { "type": "string" },
+        "activityType": { "type": "string", "enum": ["Reading", "Video", "Audio", "Interactive activity", "Assignment", "Quiz"] },
+        "estimatedMinutes": { "type": "number" },
+        "points": { "type": "number" },
+        "isRequired": { "type": "boolean" },
+        "lessonOrder": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["programmeId", "courseId", "moduleId", "title", "activityType", "lessonOrder"]
+    },
+    "LearningContent": {
+      "title": "LearningContent",
+      "description": "Structured academic content for a lesson across 14 academic sections.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "programmeId": { "type": "string" },
+        "courseId": { "type": "string" },
+        "moduleId": { "type": "string" },
+        "lessonId": { "type": "string" },
+        "sections": { "type": "string" },
+        "wordCount": { "type": "number" },
+        "readingTime": { "type": "number" },
+        "isDraft": { "type": "boolean" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["programmeId", "lessonId"]
+    },
+    "Resource": {
+      "title": "Resource",
+      "description": "Learning resource document or media.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "programmeId": { "type": "string" },
+        "courseId": { "type": "string" },
+        "moduleId": { "type": "string" },
+        "lessonId": { "type": "string" },
+        "title": { "type": "string" },
+        "fileType": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "storagePath": { "type": "string" },
+        "size": { "type": "number" },
+        "isProtected": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["programmeId", "title", "fileType"]
+    },
+    "Assessment": {
+      "title": "Assessment",
+      "description": "Quiz, assignment, or examination evaluating student competence.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "programmeId": { "type": "string" },
+        "courseId": { "type": "string" },
+        "moduleId": { "type": "string" },
+        "lessonId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 200 },
+        "instructions": { "type": "string" },
+        "assessmentType": { "type": "string", "enum": ["Quiz", "Assignment", "Examination", "Practical assessment"] },
+        "passingScore": { "type": "number" },
+        "totalPoints": { "type": "number" },
+        "timeLimitMinutes": { "type": "number" },
+        "attemptsAllowed": { "type": "number" },
+        "assessmentWeight": { "type": "number" },
+        "questionIds": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["programmeId", "title", "passingScore", "totalPoints"]
+    },
+    "Question": {
+      "title": "Question",
+      "description": "Academic item in question bank.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "bankId": { "type": "string" },
+        "questionText": { "type": "string" },
+        "questionType": { "type": "string", "enum": ["multiple_choice", "true_false", "short_answer", "long_answer"] },
+        "options": { "type": "string" },
+        "correctAnswer": { "type": "string" },
+        "explanation": { "type": "string" },
+        "points": { "type": "number" },
+        "difficulty": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string", "enum": ["Draft", "Review", "Approved"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["questionText", "questionType", "points", "status"]
+    },
+    "Enrollment": {
+      "title": "Enrollment",
+      "description": "Student enrollment record for a programme.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentEmail": { "type": "string" },
+        "studentName": { "type": "string" },
+        "programmeId": { "type": "string" },
+        "programmeName": { "type": "string" },
+        "programmeCode": { "type": "string" },
+        "enrolledAt": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "completed", "dropped"] },
+        "progressPercentage": { "type": "number" }
+      },
+      "required": ["studentId", "programmeId", "status"]
+    },
+    "StudentProgress": {
+      "title": "StudentProgress",
+      "description": "Verified student learning progress and assessment tracker.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "programmeId": { "type": "string" },
+        "completedLessons": { "type": "string" },
+        "completedModules": { "type": "string" },
+        "completedCourses": { "type": "string" },
+        "assessmentScores": { "type": "string" },
+        "completionPercentage": { "type": "number" },
+        "isCompleted": { "type": "boolean" },
+        "completedAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["studentId", "programmeId"]
+    },
+    "Certificate": {
+      "title": "Certificate",
+      "description": "Institutional digital credential issued upon validated completion.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "certificateNumber": { "type": "string" },
+        "verificationCode": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentEmail": { "type": "string" },
+        "programmeId": { "type": "string" },
+        "programmeName": { "type": "string" },
+        "programmeCode": { "type": "string" },
+        "issueDate": { "type": "string" },
+        "founderSignature": { "type": "string" },
+        "status": { "type": "string", "enum": ["Valid", "Revoked"] },
+        "qrCodeDataUrl": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["certificateNumber", "verificationCode", "studentId", "programmeId", "status"]
+    },
+    "Transcript": {
+      "title": "Transcript",
+      "description": "Official student academic transcript.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentEmail": { "type": "string" },
+        "programmeId": { "type": "string" },
+        "programmeName": { "type": "string" },
+        "programmeCode": { "type": "string" },
+        "courses": { "type": "string" },
+        "finalResult": { "type": "string" },
+        "issueDate": { "type": "string" },
+        "gpaOrAverage": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["studentId", "programmeId"]
+    },
+    "VerificationRecord": {
+      "title": "VerificationRecord",
+      "description": "Public credential verification lookup record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "certificateId": { "type": "string" },
+        "certificateNumber": { "type": "string" },
+        "verificationCode": { "type": "string" },
+        "studentName": { "type": "string" },
+        "programmeName": { "type": "string" },
+        "programmeCode": { "type": "string" },
+        "issueDate": { "type": "string" },
+        "status": { "type": "string", "enum": ["Valid", "Revoked", "Not Found"] },
+        "verifiedCount": { "type": "number" },
+        "lastVerifiedAt": { "type": "string" }
+      },
+      "required": ["certificateId", "certificateNumber", "status"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Administrator audit trail for governance actions.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "recordType": { "type": "string" },
+        "recordId": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["userId", "action", "recordType"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profile with role definition."
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "Registered institutional admins."
+    },
+    "/schools/{schoolId}": {
+      "schema": { "$ref": "#/entities/School" },
+      "description": "Schools within NIU."
+    },
+    "/departments/{departmentId}": {
+      "schema": { "$ref": "#/entities/Department" },
+      "description": "Academic departments."
+    },
+    "/programmes/{programmeId}": {
+      "schema": { "$ref": "#/entities/Programme" },
+      "description": "Certificate programmes."
+    },
+    "/courses/{courseId}": {
+      "schema": { "$ref": "#/entities/Course" },
+      "description": "Programme courses."
+    },
+    "/modules/{moduleId}": {
+      "schema": { "$ref": "#/entities/Module" },
+      "description": "Course modules."
+    },
+    "/lessons/{lessonId}": {
+      "schema": { "$ref": "#/entities/Lesson" },
+      "description": "Module lessons."
+    },
+    "/learningContent/{contentId}": {
+      "schema": { "$ref": "#/entities/LearningContent" },
+      "description": "Structured lesson content."
+    },
+    "/resources/{resourceId}": {
+      "schema": { "$ref": "#/entities/Resource" },
+      "description": "Academic files and media."
+    },
+    "/assessments/{assessmentId}": {
+      "schema": { "$ref": "#/entities/Assessment" },
+      "description": "Evaluations and quizzes."
+    },
+    "/questions/{questionId}": {
+      "schema": { "$ref": "#/entities/Question" },
+      "description": "Assessment question bank."
+    },
+    "/enrollments/{enrollmentId}": {
+      "schema": { "$ref": "#/entities/Enrollment" },
+      "description": "Student programme enrollments."
+    },
+    "/studentProgress/{progressId}": {
+      "schema": { "$ref": "#/entities/StudentProgress" },
+      "description": "Student completion and progress."
+    },
+    "/certificates/{certificateId}": {
+      "schema": { "$ref": "#/entities/Certificate" },
+      "description": "Issued digital certificates."
+    },
+    "/transcripts/{transcriptId}": {
+      "schema": { "$ref": "#/entities/Transcript" },
+      "description": "Student transcripts."
+    },
+    "/verificationRecords/{recordId}": {
+      "schema": { "$ref": "#/entities/VerificationRecord" },
+      "description": "Public credential verification index."
+    },
+    "/auditLogs/{logId}": {
+      "schema": { "$ref": "#/entities/AuditLog" },
+      "description": "Administrative audit trail."
+    }
+  }
+}

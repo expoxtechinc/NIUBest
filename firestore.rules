@@ -1,0 +1,149 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAuthorizedAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (request.auth.token.email == 'aki.sokpah.link@gmail.com' && request.auth.token.email_verified == true) ||
+        (request.auth.token.email == 'makealuckspam@gmail.com' && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Global Safety Catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Admins registry
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAuthorizedAdmin();
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAuthorizedAdmin();
+      allow list: if isAuthorizedAdmin();
+      allow create: if isOwner(userId) && request.resource.data.role == 'student';
+      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role) || isAuthorizedAdmin();
+      allow delete: if isAuthorizedAdmin();
+    }
+
+    // Schools and departments
+    match /schools/{schoolId} {
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
+    }
+    match /departments/{departmentId} {
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
+    }
+
+    // Academic programmes
+    match /programmes/{programmeId} {
+      allow read: if resource.data.status == 'Published' || isAuthorizedAdmin();
+      allow write: if isAuthorizedAdmin();
+    }
+
+    // Courses, Modules, Lessons, Content, Resources, Assessments
+    match /courses/{courseId} {
+      allow read: if isSignedIn() || isAuthorizedAdmin();
+      allow write: if isAuthorizedAdmin();
+    }
+    match /modules/{moduleId} {
+      allow read: if isSignedIn() || isAuthorizedAdmin();
+      allow write: if isAuthorizedAdmin();
+    }
+    match /lessons/{lessonId} {
+      allow read: if isSignedIn() || isAuthorizedAdmin();
+      allow write: if isAuthorizedAdmin();
+    }
+    match /learningContent/{contentId} {
+      allow read: if isSignedIn() || isAuthorizedAdmin();
+      allow write: if isAuthorizedAdmin();
+    }
+    match /resources/{resourceId} {
+      allow read: if isSignedIn() || isAuthorizedAdmin();
+      allow write: if isAuthorizedAdmin();
+    }
+    match /assessments/{assessmentId} {
+      allow read: if isSignedIn() || isAuthorizedAdmin();
+      allow write: if isAuthorizedAdmin();
+    }
+    match /questionBanks/{bankId} {
+      allow read, write: if isAuthorizedAdmin();
+    }
+    match /questions/{questionId} {
+      allow read, write: if isAuthorizedAdmin();
+    }
+
+    // Student enrollments
+    match /enrollments/{enrollmentId} {
+      allow read: if isAuthorizedAdmin() || (isSignedIn() && resource.data.studentId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.studentId == request.auth.uid;
+      allow update, delete: if isAuthorizedAdmin();
+    }
+
+    // Student progress
+    match /studentProgress/{progressId} {
+      allow read: if isAuthorizedAdmin() || (isSignedIn() && resource.data.studentId == request.auth.uid);
+      allow create, update: if isAuthorizedAdmin() || (isSignedIn() && request.resource.data.studentId == request.auth.uid);
+      allow delete: if isAuthorizedAdmin();
+    }
+
+    // Assessment attempts
+    match /assessmentAttempts/{attemptId} {
+      allow read: if isAuthorizedAdmin() || (isSignedIn() && resource.data.studentId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.studentId == request.auth.uid;
+      allow update, delete: if isAuthorizedAdmin();
+    }
+
+    // Certificates (Public get for digital verification / QR scanning, authenticated list for owner)
+    match /certificates/{certificateId} {
+      allow get: if true;
+      allow list: if isAuthorizedAdmin() || (isSignedIn() && resource.data.studentId == request.auth.uid);
+      allow write: if isAuthorizedAdmin();
+    }
+
+    // Transcripts
+    match /transcripts/{transcriptId} {
+      allow get: if isAuthorizedAdmin() || (isSignedIn() && resource.data.studentId == request.auth.uid);
+      allow list: if isAuthorizedAdmin() || (isSignedIn() && resource.data.studentId == request.auth.uid);
+      allow write: if isAuthorizedAdmin();
+    }
+
+    // Public verification records
+    match /verificationRecords/{recordId} {
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
+    }
+
+    // Audit logs
+    match /auditLogs/{logId} {
+      allow read, write: if isAuthorizedAdmin();
+    }
+
+    // Settings
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
+    }
+
+    // Connection test document
+    match /test/{docId} {
+      allow read: if true;
+    }
+  }
+}

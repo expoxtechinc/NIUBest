@@ -1,0 +1,6 @@
+{
+  "name": "Nova International University",
+  "description": "Professional academic platform and certificate education portal for Nova International University (NIU).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
